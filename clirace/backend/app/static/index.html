@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/static/favicon.ico?v=mask1" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png?v=mask1">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v=mask1">
+<title>CL Race 2026 — Haze / Wet Weather Programme</title>
+<style>
+  :root{
+    --navy:#0b1d33; --navy2:#132a4a; --orange:#ff8c2e; --orange-d:#e56f0a;
+    --white:#fff; --grey:#eef2f7; --muted:#64748b; --green:#22a45d; --red:#d0342c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       background:var(--navy); color:#111; line-height:1.4;}
+  .app{max-width:720px; margin:0 auto; min-height:100vh; background:var(--navy);}
+  /* top bar */
+  .topbar{position:sticky; top:0; z-index:50; background:linear-gradient(180deg,#0d2440,#0b1d33);
+          color:var(--white); padding:10px 14px; display:flex; align-items:center; gap:10px;
+          border-bottom:1px solid #1d3a5f;}
+  .topbar .logo{font-weight:800; letter-spacing:.5px; font-size:1.05rem; color:var(--white);}
+  .topbar .logo b{color:var(--orange);}
+  .topbar .spacer{flex:1;}
+  .topbar a{color:#cfe0f5; text-decoration:none; font-size:.85rem; padding:4px 8px; border-radius:6px;}
+  .topbar a.active{background:var(--orange); color:#fff; font-weight:600;}
+  /* login */
+  .login-wrap{display:flex; align-items:center; justify-content:center; min-height:78vh; padding:24px;}
+  .login-card{background:#fff; border-radius:16px; padding:26px 22px; width:100%; max-width:360px;
+              box-shadow:0 10px 30px rgba(0,0,0,.4);}
+  .login-card h1{font-size:1.5rem; color:var(--navy); margin-bottom:4px;}
+  .login-card p{color:var(--muted); font-size:.9rem; margin-bottom:16px;}
+  .login-card .prog{display:inline-block; font-size:.76rem; font-weight:800; letter-spacing:.6px;
+    text-transform:uppercase; padding:4px 11px; border-radius:999px; margin-bottom:6px;}
+  .login-card .prog-haze{background:#fff7e6; color:#a16207; border:1px solid #fcd34d;}
+  .login-card .prog-wet{background:#eaf2ff; color:#1d4ed8; border:1px solid #bfdbfe;}
+  .login-card .switch{margin-top:14px; padding-top:12px; border-top:1px solid #eef2f7; text-align:center;
+    font-size:.84rem; color:var(--muted); line-height:1.55;}
+  .login-card .switch a{color:var(--orange-d); font-weight:700; text-decoration:none;}
+  .login-card .switch a:hover{text-decoration:underline;}
+  .topbar .prog{font-size:.62rem; font-weight:800; letter-spacing:.7px; text-transform:uppercase;
+    padding:3px 8px; border-radius:999px; background:#1d3a5f; color:#c7d7ee; white-space:nowrap;}
+  .login-card label{display:block; font-size:.82rem; font-weight:600; color:var(--navy); margin:12px 0 4px;}
+  .login-card input{width:100%; padding:11px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:1rem;}
+  .btn{display:block; width:100%; padding:13px; border:none; border-radius:8px; font-size:1rem; font-weight:700;
+       cursor:pointer; background:var(--orange); color:#fff; margin-top:16px;}
+  .btn:active{transform:scale(.98);}
+  .btn.secondary{background:var(--navy2);}
+  .btn.ghost{background:#e6edf5; color:var(--navy);}
+  .err{color:var(--red); font-size:.85rem; margin-top:8px; min-height:1em;}
+  /* pages */
+  .page{padding:16px; background:var(--grey); min-height:calc(100vh - 48px);}
+  .card{background:#fff; border-radius:14px; padding:16px; margin-bottom:14px;
+        box-shadow:0 2px 8px rgba(11,29,51,.06);}
+  .card h3{color:var(--navy); font-size:1.05rem; margin-bottom:6px;}
+  .muted{color:var(--muted); font-size:.86rem;}
+  .timer{font-size:2.2rem; font-weight:800; font-variant-numeric:tabular-nums; color:var(--navy); letter-spacing:2px;}
+  .status-pill{display:inline-block; padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:700; color:#fff;}
+  .pill-completed{background:var(--green);} .pill-pending{background:var(--orange);}
+  .pill-rejected{background:var(--red);} .pill-locked{background:#94a3b8;}
+  .pill-available{background:var(--navy2);}
+  .checkpoint{display:flex; gap:12px; align-items:flex-start; padding:10px 0; border-bottom:1px solid #eef;}
+  .checkpoint:last-child{border-bottom:none;}
+  .cp-num{width:34px; height:34px; border-radius:50%; background:var(--navy); color:#fff; font-weight:700;
+          display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .cp-num.locked{background:#94a3b8;}
+  .cp-num.done{background:var(--green);}
+  .cp-num.cur{background:var(--orange);}
+  .big-btn{display:block; width:100%; padding:16px; border:none; border-radius:12px; font-size:1.05rem;
+           font-weight:800; cursor:pointer; color:#fff; text-align:center;}
+  .big-btn.green{background:var(--green);}
+  .big-btn.orange{background:var(--orange);}
+  .big-btn:active{transform:scale(.98);}
+  .clue-img{width:100%; border-radius:10px; border:1px solid #dfe6ee; display:block;}
+  .photo-drop{border:2px dashed #cbd5e1; border-radius:12px; padding:18px; text-align:center; color:var(--muted);
+              background:#fafbfd; cursor:pointer; margin-top:10px; font-size:.9rem;}
+  .up-btns{display:flex; gap:8px; margin-bottom:8px;}
+  .up-btns .btn{margin:0; padding:11px 10px; font-size:.92rem;}
+  .up-btn.alt{background:var(--navy2);}
+  .photo-preview{width:100%; max-height:320px; object-fit:contain; border-radius:10px; margin-top:10px; border:1px solid #dfe6ee;}
+  .upload-bar{height:8px; background:#e2e8f0; border-radius:4px; margin-top:10px; overflow:hidden;}
+  .upload-bar div{height:100%; width:0; background:var(--orange); transition:width .2s;}
+  .reject-reason{background:#fdeceb; border-left:4px solid var(--red); padding:10px 12px; border-radius:6px;
+                 font-size:.88rem; margin-top:10px;}
+  table.leader{width:100%; border-collapse:collapse; font-size:.92rem;}
+  table.leader th{text-align:left; color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.4px; padding:6px 4px; border-bottom:2px solid #e2e8f0;}
+  table.leader td{padding:9px 4px; border-bottom:1px solid #eef;}
+  .rank-medal{display:inline-block; min-width:24px;}
+  .approval-card img.thumb{width:70px; height:70px; object-fit:cover; border-radius:8px; border:1px solid #dfe6ee;}
+  .approval-img{width:100%; border-radius:10px; border:1px solid #dfe6ee; margin:8px 0;}
+  .row2{display:flex; gap:10px;}
+  .row2 .btn{margin-top:8px;}
+  .flex{display:flex; align-items:center; gap:10px;}
+  .grow{flex:1;}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+  .tab{padding:8px 14px; border-radius:20px; background:#fff; border:1px solid #d7e0ea; color:var(--navy);
+       font-weight:600; font-size:.9rem; cursor:pointer;}
+  .tab.on{background:var(--navy); color:#fff;}
+  /* Race Control: make the action you need unmissable */
+  .tab.tab-live{border:2px solid var(--orange); color:var(--orange); font-weight:700;}
+  .tab.tab-live.blink{animation:rcblink 1.05s steps(1,end) infinite;}
+  .tab.tab-next{box-shadow:0 0 0 4px rgba(242,116,42,.18);}
+  @keyframes rcblink{0%,45%{opacity:1} 50%,100%{opacity:.22}}
+  .rc-hint{font-weight:600; color:var(--orange); margin:-4px 0 10px;}
+  .rc-hint.done{color:var(--muted); font-weight:400;}
+  .rc-now{font-size:.85rem; color:var(--muted); margin-left:10px; font-weight:400;}
+  .rc-arrow{display:inline-block; animation:rcslide 1.05s ease-in-out infinite;}
+  @keyframes rcslide{0%,100%{transform:translateX(0)} 50%{transform:translateX(6px)}}
+  @media (prefers-reduced-motion: reduce){.tab.tab-live.blink,.rc-arrow{animation:none;}}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat{background:#fff; border-radius:12px; padding:14px; text-align:center;}
+  .stat .n{font-size:1.8rem; font-weight:800; color:var(--navy);}
+  .stat .l{color:var(--muted); font-size:.8rem;}
+  .modal{position:fixed; inset:0; background:rgba(11,29,51,.5); display:none; align-items:center; justify-content:center; z-index:200; padding:20px;}
+  .modal.show{display:flex;}
+  .modal-card{background:#fff; border-radius:14px; padding:20px; width:100%; max-width:400px; max-height:88vh; overflow:auto;}
+  .modal-card h3{color:var(--navy); margin-bottom:12px;}
+  textarea{width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:8px; font-size:.95rem; min-height:60px;}
+  .audit-row{padding:8px 0; border-bottom:1px solid #eef; font-size:.86rem;}
+  .audit-row .t{color:var(--navy); font-weight:600;}
+  .badge-admin{background:var(--navy2); color:#fff; font-size:.7rem; padding:2px 8px; border-radius:4px;}
+  .toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#0b1d33; color:#fff;
+         padding:12px 20px; border-radius:10px; font-weight:600; z-index:300; opacity:0; transition:opacity .3s; max-width:90%;}
+  .toast.show{opacity:1;}
+  .hidden{display:none !important;}
+.lfchip{position:fixed; left:14px; bottom:14px; z-index:180; background:#fff; border:1px solid #dbe3ec;
+  border-radius:999px; padding:7px 13px; font-size:.78rem; color:var(--navy); box-shadow:0 2px 10px rgba(11,29,51,.14);}
+.lfchip a{color:var(--orange); font-weight:700; text-decoration:none;}
+.lf-dot{width:8px; height:8px; border-radius:50%; background:#16a34a; display:inline-block; margin-right:6px;
+  vertical-align:middle; animation:lfpulse 1s ease-in-out infinite;}
+.lf-dot.off{background:#94a3b8; animation:none;}
+@keyframes lfpulse{0%,100%{opacity:1} 50%{opacity:.2}}
+@media (prefers-reduced-motion: reduce){.lf-dot{animation:none;}}
+
+/* ---- Hall of Fame ---- */
+.hof-rank{display:inline-block; min-width:46px; text-align:center; padding:4px 10px; border-radius:10px;
+  background:linear-gradient(180deg,#f7d774,#dfa72a); color:#4a3208; font-weight:800; font-size:1rem;
+  box-shadow:0 1px 4px rgba(11,29,51,.18);}
+.hof-rank.sm{min-width:32px; padding:2px 8px; font-size:.8rem;}
+.hof-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px;}
+.hof-head{display:flex; align-items:center; gap:10px;}
+.hof-note{font-size:.95rem; color:var(--navy); margin:8px 0 0; font-style:italic;}
+.hof-img{width:100%; max-height:58vh; object-fit:contain; background:#0b1d33; border-radius:10px;
+  margin-top:10px; cursor:zoom-in;}
+.hof-admin{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+body.presenting .topbar{display:none;}
+body.presenting .page{max-width:1400px; padding-top:12px;}
+body.presenting .hof-img{max-height:70vh;}
+#presentExit{display:none; position:fixed; right:14px; top:14px; z-index:200;}
+body.presenting #presentExit{display:inline-block;}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<!-- Lightbox for zooming photos -->
+<div id="lightbox" class="modal" onclick="this.classList.remove('show')">
+  <div style="display:flex; flex-direction:column; align-items:center; gap:12px; max-width:95%; max-height:95%;" onclick="event.stopPropagation()">
+    <img id="lightbox-img" src="" style="max-width:100%; max-height:78vh; border-radius:10px; cursor:zoom-out;" onclick="$('#lightbox').classList.remove('show')">
+    <div style="display:flex; gap:10px;">
+      <a id="lightbox-dl" class="btn" href="#" download style="text-decoration:none;">&#11015; Download photo</a>
+      <button class="btn secondary" onclick="$('#lightbox').classList.remove('show')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ============================== helpers ============================== */
+const $ = (s,r=document)=>r.querySelector(s);
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fmtDur(sec){
+  if(sec==null) return '--:--:--';
+  sec=Math.max(0,Math.floor(sec));
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  const p=n=>String(n).padStart(2,'0');
+  return `${p(h)}:${p(m)}:${p(s)}`;
+}
+function fmtTime(iso){
+  if(!iso) return '—';
+  const d=new Date(iso); if(isNaN(d)) return '—';
+  return d.toLocaleString('en-SG',{hour12:false});
+}
+let toastTimer;
+function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2500);}
+async function api(path,opts={}){
+  opts.headers = Object.assign({'Content-Type':'application/json'}, opts.headers||{});
+  const r = await fetch(path,{credentials:'same-origin',...opts,headers:opts.headers});
+  let data=null;
+  try{data=await r.json();}catch(e){}
+  if(r.status===401 && !opts._no401){ renderLogin(); throw new Error('Session expired'); }
+  if(!r.ok){ throw new Error((data&&data.detail)||('Request failed ('+r.status+')')); }
+  return data;
+}
+function upload(path,file){
+  const fd=new FormData(); fd.append('file',file);
+  return fetch(path,{method:'POST',credentials:'same-origin',body:fd});
+}
+function pill(status){const m={'completed':'pill-completed','pending':'pill-pending','rejected':'pill-rejected','locked':'pill-locked','available':'pill-available','replaced':'pill-locked'};
+  return `<span class="status-pill ${m[status]||'pill-locked'}">${esc(status)}</span>`;}
+
+const state = { me:null };
+
+/* ============================== ROUTER ============================== */
+const routes = {
+  '':              loginView,
+  '#/login':       loginView,
+  '#/mission':     missionView,
+  '#/progress':    progressView,
+  '#/leaderboard': leaderboardView,
+  '#/final':       finalView,
+  '#/menu':        menuView,
+  '#/hall':        hallView,
+};
+const adminRoutes = {
+  '#/admin':         adminDashboard,
+  '#/admin/approve': adminApprove,
+  '#/admin/teams':   adminTeams,
+  '#/admin/leader':  adminLeader,
+  '#/admin/audit':   adminAudit,
+  '#/admin/checkpoints': adminCheckpoints,
+  '#/admin/hall':    adminHall,
+};
+function navPath(){return location.hash || '';}
+async function render(){
+  let p = navPath();
+  if(!state.me){
+    try{ state.me = await api('/api/me', {_no401:true}); }catch(e){ state.me=null; }
+  }
+  if(!state.me){
+    // Hall of Fame is a public showcase — anyone with the link can watch it,
+    // no login needed (used to present the highlights after the race).
+    if(p==='#/hall'){
+      clearInterval(window._elapsedInt);
+      $('#app').innerHTML = publicBar();
+      return hallView(true);
+    }
+    return renderLogin();
+  }
+  const isAdmin = state.me.role==='admin';
+  // Reloading the bare URL while signed in must NOT fall back to the login card.
+  if(p==='' || p==='#/login'){
+    p = isAdmin ? '#/admin' : '#/mission';
+    if(location.hash !== p) history.replaceState(null, '', p);
+  }
+  let fn = routes[p];
+  if(isAdmin && adminRoutes[p]) fn = adminRoutes[p];
+  if(isAdmin && !fn){
+    const m = p.match(/^#\/admin\/team\/(\d+)$/);      // one team's photos + scores
+    if(m){ const tid = parseInt(m[1], 10); fn = async () => teamDetail(tid); }
+  }
+  if(!fn) fn = isAdmin ? adminDashboard : missionView;
+  clearInterval(window._elapsedInt);
+  $('#app').innerHTML = bar(isAdmin);
+  await fn(isAdmin);
+  // refresh role-based polling setup
+  setupPolling();
+}
+function publicBar(){
+  return `<div class="topbar"><div class="logo">CL <b>RACE</b> 2026</div><span class="prog">HALL OF FAME</span><div class="spacer"></div>
+    <a href="#/login">Login</a></div><div class="page" id="page"></div>`;
+}
+function bar(isAdmin){
+  const items = isAdmin
+    ? [['#/admin','Dashboard'],['#/admin/approve','Approvals'],['#/admin/teams','Teams'],
+       ['#/admin/leader','Leaderboard'],['#/admin/hall','Hall of Fame'],
+       ['#/admin/audit','Audit'],['#/admin/checkpoints','CPs']]
+    // Karina: "Remove progress tab - we do not want the teams to see their route/next
+    // station" and "Remove leaderboard button as we do not want teams to see their
+    // rankings." Teams get Mission + Menu only; both endpoints are admin-gated too.
+    : [['#/mission','Mission'],['#/hall','Hall of Fame'],['#/menu','Menu']];
+  const cur = navPath();
+  return `<div class="topbar"><div class="logo">CL <b>RACE</b> 2026</div><span class="prog">HAZE / WET</span><div class="spacer"></div>
+    ${items.map(i=>`<a href="${i[0]}" class="${cur===i[0]?'active':''}">${i[1]}</a>`).join('')}
+    <a href="#" onclick="logout(event)" style="color:#fca5a5">Logout</a></div><div class="page" id="page"></div>`;
+}
+async function logout(e){ e.preventDefault();
+  try{await api('/api/logout',{method:'POST'});}catch(_){}
+  document.cookie='clirace_session=; Max-Age=0; path=/; samesite=lax';
+  state.me=null; renderLogin(); }
+
+/* ============================== LOGIN ============================== */
+function loginView(){
+  $('#app').innerHTML = `<div class="login-wrap"><div class="login-card">
+    <h1>CL Race 2026</h1><p>Agent DT: City Quest — CBD Amazing Race</p>
+    <div class="prog prog-wet">🌧 Haze / Wet Weather Programme</div>
+    <label>Username</label><input id="u" autocomplete="username" autocapitalize="none" onkeydown="if(event.key==='Enter')doLogin(event)">
+    <label>Password</label><input id="p" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin(event)">
+    <button class="btn" onclick="doLogin(event)">Sign In</button>
+    <div class="err" id="lerr"></div>
+    <div class="switch">Running the <b>Haze Free</b> programme instead?<br><a href="https://clrace2026.clreport.com">Switch to Haze Free Programme →</a></div></div></div>`;
+}
+async function doLogin(e){
+  e.preventDefault();
+  const btn = document.querySelector('.login-card .btn');
+  if(btn && btn.disabled) return;               // guard double-submit
+  const errEl = $('#lerr'); if(errEl) errEl.textContent='';
+  const u=$('#u').value.trim(), p=$('#p').value;
+  if(btn){ btn.disabled=true; btn.textContent='Signing in…'; }
+  try{
+    const d = await api('/api/login',{method:'POST',body:JSON.stringify({username:u,password:p}),_no401:true});
+    state.me=d.user;
+    const target = d.user.role==='admin' ? '#/admin' : '#/mission';
+    if(location.hash !== target) location.hash = target;  // hashchange listener renders
+    await render();                                       // ALWAYS render: hash may already equal target
+  }catch(err){
+    if(errEl) errEl.textContent=err.message;
+    if(btn){ btn.disabled=false; btn.textContent='Sign In'; }
+    const pe=$('#p'); if(pe) pe.focus();
+  }
+}
+function renderLogin(){ state.me=null; loginView(); }
+
+/* ============================== TEAM VIEWS ============================== */
+let timerInt=null, pollInt=null;
+function setupPolling(){
+  clearInterval(timerInt); clearInterval(pollInt);
+  if(state.me && state.me.role!=='admin'){
+    // timer tick: compute from server started_at
+    timerInt=setInterval(()=>{ const el=$('#timer-num'); if(el && el.dataset.start){ el.textContent=fmtDur(liveSec(el.dataset.start)); } },1000);
+    // short poll for release / approval notifications (~10s per guide §13)
+    if(navPath()==='#/mission' || navPath()==='#/progress'){
+      pollInt=setInterval(async()=>{ try{ await refreshMission(); }catch(_){} },10000);
+    }
+  }
+}
+async function missionView(){
+  let d;
+  try{ d=await api('/api/portal'); }catch(err){ $('#page').innerHTML=`<div class="card">${esc(err.message)}</div>`; return; }
+  const team=d.team;
+  const html = `
+    <div class="card flex">
+      <div class="grow"><h3>${esc(team.name)}</h3>
+        <span class="muted">Route: ${esc(team.route||'—')} &nbsp;·&nbsp; ${state.me.role==='admin'?'':pill(team.status||d.status)}</span></div>
+      <div class="timer" data-start="${d.started_at}" id="timer-num">${fmtDur(d.timer_elapsed_seconds)}</div>
+    </div>
+    <div id="mission-body"></div>`;
+  $('#page').innerHTML=html;
+  await refreshMission();
+}
+function liveSec(iso){ if(!iso) return null; const t=new Date(iso).getTime()/1000; if(isNaN(t)) return null; return Math.max(0, Math.floor(Date.now()/1000 - t)); }
+function waitingCard(d){
+  const st=(d&&d.status)||'not_started';
+  const head = st==='paused' ? 'RACE PAUSED' : st==='completed' ? 'RACE COMPLETED' : 'GET READY, AGENTS';
+  const msg = st==='paused'
+      ? 'Hold position — the Game Admin has paused the race. You will resume automatically.'
+    : st==='completed'
+      ? 'The race is over. Rankings will be revealed at prize giving 🏆'
+    : st==='live'
+      ? 'The race is live and the Game Admin is releasing teams one by one. Your timer starts the moment your team is released — keep this page open, it updates on its own.'
+      : 'Your team has not been released yet. Please wait for the Game Admin to start your race.';
+  return `<div class="card" style="text-align:center; padding:28px;">
+    <h3 style="font-size:1.25rem;">${head}</h3>
+    <p class="muted">${msg}</p>
+    <div class="timer" style="margin-top:12px;">--:--:--</div></div>`;
+}
+
+async function refreshMission(){
+  const body=$('#mission-body'); if(!body) return;
+  let d;
+  try{ d=await api('/api/portal'); }
+  catch(err){ body.innerHTML=`<div class="card">${esc(err.message)}</div>`; return; }
+  const tn=$('#timer-num'); if(tn) tn.dataset.start=d.started_at;
+  // Don't let the poll wipe a photo the leader has just selected / is uploading.
+  if(uploadBusy()) return;
+
+  // Teams never start themselves: until the Game Admin releases THIS team, show the wait card.
+  if(d.status!=='live' || !d.started_at){ body.innerHTML=waitingCard(d); return; }
+  // finished?
+  if(d.team.status==='finished'){
+    body.innerHTML=`<div class="card" style="text-align:center; padding:30px;">
+      <h3 style="font-size:1.4rem;">🏁 RACE COMPLETED — Mission Accomplished</h3>
+      <p class="muted">Final time: <b>${fmtDur(d.timer_elapsed_seconds)}</b></p>
+      <p class="muted">Well run, agents! Rankings will be revealed at prize giving 🏆</p></div>`;
+    return;
+  }
+  // active next-checkpoint card
+  let nx;
+  try{ nx = await api('/api/checkpoints/next'); }catch(err){ nx={available:false,message:err.message}; }
+  if(nx.available){
+    if(uploadBusy()) return;   // poll started before the picker opened; back off now
+    const cp=nx.checkpoint;
+    body.innerHTML=currentCheckpointCard(cp,nx);
+    bindUpload(cp.id);
+    const subTable=await submissionsTableHtml();
+    if(subTable) body.insertAdjacentHTML('beforeend', subTable);
+  } else if(nx.message==='FINISHED'){
+    body.innerHTML=`<div class="card" style="text-align:center;"><h3>🏁 RACE COMPLETED</h3>
+      <p class="muted">Final time: ${fmtDur(d.timer_elapsed_seconds)}</p>
+      <p class="muted">Rankings will be revealed at prize giving 🏆</p></div>`;
+    const subTable=await submissionsTableHtml();
+    if(subTable) body.insertAdjacentHTML('beforeend', subTable);
+  } else {
+    body.innerHTML=`<div class="card" style="text-align:center; padding:26px;">
+      <h3>${esc(nx.message||'Awaiting checkpoint')}</h3>
+      <p class="muted">Stand by… The next mission will appear here.</p></div>`;
+  }
+}
+async function submissionsTableHtml(){
+  try{
+    const d=await api('/api/my/submissions');
+    const rows=(d.submissions||[]);
+    if(!rows.length) return '';
+    const statTxt = {completed:'Approved', pending:'Pending', rejected:'Rejected', replaced:'Replaced'};
+    const badgeCls = {completed:'pill-completed', pending:'pill-pending', rejected:'pill-rejected', replaced:'pill-locked'};
+    const trs=rows.map(s=>`<tr>
+      <td><img class="thumb" src="${s.thumbnail_url}" onclick="zoom('${s.photo_url}')" alt="upload" style="width:44px;height:44px;object-fit:cover;border-radius:6px;cursor:zoom-in;"></td>
+      <td>${esc(s.location||'CP'+s.checkpoint_number)}<div class="muted" style="font-size:.72rem;">${esc(s.checkpoint||'')}</div></td>
+      <td><span class="status-pill ${badgeCls[s.status]||'pill-locked'}">${statTxt[s.status]||esc(s.status)}</span></td>
+      <td class="muted" style="font-size:.75rem;">${esc(s.reason||'')}</td>
+    </tr>`).join('');
+    return `<div class="card" style="margin-top:14px;"><h3 style="font-size:.95rem;">Mission Submissions</h3>
+      <div style="overflow-x:auto;"><table class="leader">
+        <tr><th>Item</th><th>Checkpoint</th><th>Status</th><th>Remarks</th></tr>${trs}
+      </table></div></div>`;
+  }catch(e){ return ''; }
+}
+function currentCheckpointCard(cp,nx){
+  const imgs = (cp.images||[]).map(i=>`<img class="clue-img" src="${i.url}" onclick="zoom('${i.url}')" alt="clue">`).join('');
+  return `<div class="card">
+      <div class="flex"><span class="cp-num cur">${cp.number}</span>
+        <div><h3>${esc(cp.title)}</h3><span class="muted">${esc(cp.location)} · ${esc(cp.category)}</span></div></div>
+      <p style="margin-top:10px;">${esc(cp.description||'')}</p>
+      ${imgs}
+      ${cp.requirements&&cp.requirements.length?`<div style="background:#f5f7fa;padding:10px 12px;border-radius:8px;margin-top:10px;font-size:.9rem;">
+        <b>Mission Requirements</b><ul style="margin:6px 0 0 18px;">${cp.requirements.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`:''}
+      ${cp.bonus_description?`<div class="muted" style="margin-top:8px;">📝 Note: ${esc(cp.bonus_description)}</div>`:''}
+      <div class="photo-drop" id="drop">
+        <div class="up-btns"><button type="button" class="btn up-btn" id="btnCam">📷 Take Photo</button><button type="button" class="btn up-btn alt" id="btnGal">🖼️ Choose from Gallery</button></div>
+        <span class="muted">JPG / PNG / WebP / HEIC, max 15MB</span></div>
+      <input type="file" id="filecam" accept="image/*,.heic,.heif" capture="environment" class="hidden">
+      <input type="file" id="filegal" accept="image/*,.heic,.heif" class="hidden">
+      <img class="photo-preview hidden" id="preview">
+      <div class="upload-bar hidden" id="bar"><div id="pfill"></div></div>
+      <button class="btn" id="submit" data-cp="${cp.id}" disabled>Submit Photo</button>
+      <div class="err" id="uerr"></div>
+    </div>`;
+}
+let __pickerAt=0;   // timestamp of last native file-picker open
+function selFileInput(){
+  const a=document.getElementById('filecam'), b=document.getElementById('filegal');
+  if(a&&a.files&&a.files.length) return a;
+  if(b&&b.files&&b.files.length) return b;
+  return b||a;
+}
+function uploadBusy(){
+  const f=selFileInput(), s=document.getElementById('submit');
+  if(!s) return false;
+  if(f&&f.files&&f.files.length>0) return true;
+  if(s.textContent==='Uploading…') return true;
+  // The native picker just opened; the user may be mid-selection (file.files is
+  // still empty). Back the poll off so it can't re-render and detach the input
+  // mid-pick — that's what made the first selection appear blank. Reset by the
+  // change event, or after a ~20s grace if the user cancels.
+  if(__pickerAt && Date.now()-__pickerAt < 20000) return true;
+  return false;
+}
+function bindUpload(cpId){
+  const drop=$('#drop'), preview=$('#preview'), bar=$('#bar'), pfill=$('#pfill');
+  const submit=$('#submit'), uerr=$('#uerr');
+  const cam=$('#filecam'), gal=$('#filegal');
+  const open=inp=>{ __pickerAt=Date.now(); inp.click(); };
+  if($('#btnCam')) $('#btnCam').onclick=e=>{ e.stopPropagation(); open(cam); };
+  if($('#btnGal')) $('#btnGal').onclick=e=>{ e.stopPropagation(); open(gal); };
+  // Tapping the dashed area itself defaults to the Gallery (the camera button is right above).
+  drop.onclick=e=>{ if(e.target.closest&&e.target.closest('button')) return; open(gal); };
+  const picked=src=>()=>{ __pickerAt=0; const f=src.files[0]; if(!f) return;
+    if(preview.src && preview.src.startsWith('blob:')) URL.revokeObjectURL(preview.src);
+    preview.src=URL.createObjectURL(f);
+    preview.classList.remove('hidden');
+    submit.disabled=false; submit.textContent='Submit Photo'; };
+  cam.onchange=picked(cam); gal.onchange=picked(gal);
+  submit.onclick=async()=>{
+    const fi=selFileInput(); const f=fi&&fi.files[0]; if(!f) return;
+    submit.disabled=true; submit.textContent='Uploading…'; bar.classList.remove('hidden');
+    const xhr=new XMLHttpRequest();
+    const fd=new FormData(); fd.append('file',f); fd.append('admin_note','');
+    xhr.open('POST','/api/submit/'+cpId,true); xhr.withCredentials=true;
+    xhr.upload.onprogress=e=>{ if(e.lengthComputable) pfill.style.width=(e.loaded/e.total*100)+'%'; };
+    xhr.onload=async()=>{
+      pfill.style.width='100%';
+      if(xhr.status>=200&&xhr.status<300){ cam.value=''; gal.value=''; toast('Submitted for review ✅'); await render(); }
+      else{ let m=xhr.status; try{ m=JSON.parse(xhr.responseText).detail||m; }catch(_){}
+        if(xhr.status===415) m='That photo format is not supported. On iPhone set Camera → Formats → Most Compatible, or take a screenshot of the photo and upload the screenshot.';
+        else if(xhr.status===413) m='Photo is larger than 15MB. Please retake at a smaller size.';
+        else if(xhr.status===403||xhr.status===401) m='Your session expired — please log in again.';
+        uerr.textContent=m; submit.disabled=false; submit.textContent='Retry Submit Photo'; }
+    };
+    xhr.onerror=()=>{ uerr.textContent='Network error — check connection and retry.'; submit.disabled=false; submit.textContent='Retry'; };
+    xhr.send(fd);
+  };
+}
+function zoom(url, name){ const lb=$('#lightbox'); $('#lightbox-img').src=url;
+  const a=$('#lightbox-dl'); a.href=url; a.setAttribute('download', name||(url.split('/').pop()||'photo.jpg')); lb.classList.add('show'); }
+
+async function progressView(){
+  // Karina: teams must not see their progress route — Progress tab removed for teams.
+  if(state.me && state.me.role!=='admin'){ location.hash='#/mission'; return; }
+  let d; try{ d=await api('/api/portal'); }catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  // Karina: teams must not see their route/next station, so the portal sends no route
+  // for non-admins. We show only checkpoints this team has already cleared.
+  const rows=(d.route||[]).map(r=>{
+    const cls = r.status==='completed'?'done':(r.status==='available'||r.status==='pending')?'cur':(r.status==='rejected'?'cur':'locked');
+    return `<div class="checkpoint"><span class="cp-num ${cls}">${r.checkpoint_number}</span>
+      <div class="grow"><div class="flex"><b>${esc(r.location)}</b><div class="flex grow" style="justify-content:flex-end">${pill(r.status)}</div></div>
+      <div class="muted">${esc(r.is_final?'Final Mission · ':'')}Checkpoint ${r.checkpoint_number}</div></div></div>`;
+  }).join('');
+  $('#page').innerHTML=`<div class="card"><h3>Race Progress</h3>
+    <div style="margin-top:8px;">${rows||'<div class="muted">No route assigned.</div>'}</div></div>`;
+  // refresh for updates
+  try{const p=await api('/api/portal'); }catch(_){}
+}
+async function leaderboardView(){
+  // Lyn: "We do not want the teams to view their final scores in the portal."
+  // Rankings are announced at prize giving; only the admin console shows them.
+  if(state.me && state.me.role!=='admin'){ location.hash='#/mission'; return; }
+  let d; try{ d=await api('/api/leaderboard'); }catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  const rows=(d.leaderboard||[]).map((t,i)=>`<tr>
+    <td><span class="rank-medal">${t.rank?t.rank:(i+1)}</span></td>
+    <td><b>${esc(t.name)}</b><div class="muted" style="font-size:.78rem;">${t.status}</div></td>
+    <td><b>${t.score||0}</b></td><td>${t.completed||0}</td>
+    <td>${fmtDur(t.elapsed_seconds)}</td></tr>`).join('');
+  $('#page').innerHTML=`<div class="card"><h3>🏆 Overall Leaderboard</h3>
+    <table class="leader"><tr><th>#</th><th>Team</th><th>Score</th><th>Done</th><th>Time</th></tr>
+    ${rows||'<tr><td colspan="5" class="muted">No data.</td></tr>'}</table></div>`;
+  try{const f=await api('/api/leaderboard/fastest'); if(f.fastest&&f.fastest.length){
+    const fr=f.fastest.map((t,i)=>`<tr><td>${t.rank}</td><td><b>${esc(t.name)}</b></td>
+      <td>${fmtDur(t.elapsed_seconds)}</td></tr>`).join('');
+    $('#page').innerHTML+=`<div class="card" style="margin-top:14px;"><h3>⏱️ Fastest Race</h3>
+      <table class="leader"><tr><th>#</th><th>Team</th><th>Elapsed</th></tr>${fr}</table></div>`; }
+  }catch(_){}
+}
+async function finalView(){
+  // admin only — teams get their final time on the mission page, no standings
+  if(state.me && state.me.role!=='admin'){ location.hash='#/mission'; return; }
+  await leaderboardView();
+  let d; try{ d=await api('/api/portal'); }catch(_){}
+  if(d && d.team && d.team.status==='finished'){
+    // score breakdown
+    // (backend has no per-component breakdown endpoint; show summary)
+    $('#page').innerHTML = `<div class="card" style="text-align:center; padding:26px;">
+      <h2 style="color:var(--navy);">🏁 Mission Accomplished</h2>
+      <p class="muted">Final time: <b>${fmtDur(d.timer_elapsed_seconds)}</b></p></div>` + $('#page').innerHTML;
+  }
+}
+async function menuView(){
+  $('#page').innerHTML=`<div class="card"><h3>Menu</h3>
+    <a href="#/mission" class="btn secondary" style="text-decoration:none;">Mission</a>
+    <button class="btn ghost" style="margin-top:8px;" onclick="logout(event)">Logout</button></div>`;
+}
+
+/* ============================== ADMIN VIEWS ============================== */
+
+/* ============================== HALL OF FAME ============================== */
+const HOF_MAX_RANK = 20;
+let _hofRanks = {};                 // submission_id -> rank (absent = not featured)
+
+async function loadHofRanks(){
+  try{
+    const d = await api('/api/admin/hall-of-fame');
+    const m = {};
+    (d.items||[]).forEach(i=>{ if(i.rank!=null) m[i.submission_id]=i.rank; });
+    _hofRanks = m;
+  }catch(_){ _hofRanks = {}; }
+  return _hofRanks;
+}
+function hofSelect(sid, rank){
+  const cur = (rank==null ? '' : String(rank));
+  let opts = '<option value="">\u2014 not featured \u2014</option>';
+  for(let n=1;n<=HOF_MAX_RANK;n++){
+    opts += `<option value="${n}" ${String(n)===cur?'selected':''}>Rank #${n}</option>`;
+  }
+  return `<div class="hof-admin"><span style="font-weight:600;">\uD83C\uDFC6 Hall of Fame:</span>
+    <select id="hof${sid}" onchange="hofSet(${sid})"
+      style="padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px;">${opts}</select>
+    <span class="muted" id="hofs${sid}" style="font-size:.8rem;">${rank==null
+      ? 'not shown in the showcase' : ('featured as rank #'+rank)}</span></div>`;
+}
+async function hofSet(sid){
+  const sel = $('#hof'+sid); if(!sel) return;
+  const raw = sel.value;
+  const rank = raw==='' ? null : parseInt(raw,10);
+  try{
+    await api('/api/admin/hall-of-fame',
+              {method:'POST', body:JSON.stringify({submission_id:sid, rank})});
+    if(rank==null) delete _hofRanks[sid]; else _hofRanks[sid]=rank;
+    const lbl = $('#hofs'+sid);
+    if(lbl) lbl.textContent = rank==null ? 'not shown in the showcase' : ('featured as rank #'+rank);
+    toast(rank==null ? 'Removed from the Hall of Fame' : ('\uD83C\uDFC6 Hall of Fame rank #'+rank+' saved'));
+  }catch(e){
+    toast(e.message);
+    sel.value = (_hofRanks[sid]==null ? '' : String(_hofRanks[sid]));
+  }
+}
+function hofFileName(e, extra){
+  return ((e.team||'photo').replace(/[^A-Za-z0-9]+/g,'')||'photo')
+       + '_CP' + (e.checkpoint_number||'') + (extra||'') + '.jpg';
+}
+/* ---------- public showcase (any signed-in user; refreshes live) ---------- */
+async function hallView(isPublic){
+  let d;
+  try{ d = await api('/api/hall-of-fame', {_no401:true}); }
+  catch(e){ $('#page').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
+  const es = d.entries||[];
+  const cards = es.map(e=>{
+    const i = {team:e.team, checkpoint_number:e.checkpoint_number};
+    return `<div class="card">
+      <div class="hof-head"><span class="hof-rank">${e.rank!=null?('#'+e.rank):'\u2605'}</span>
+        <div class="grow"><h3 style="margin:0;">${esc(e.team)}</h3>
+          <div class="muted">CP${e.checkpoint_number||''} \u00b7 ${esc(e.checkpoint)}${e.total_score!=null?(' \u00b7 score '+e.total_score):''}</div></div></div>
+      ${e.headline?`<div class="hof-note">${esc(e.headline)}</div>`:''}
+      <img class="hof-img" src="${e.photo_url}" title="Click to expand"
+           onclick="zoom('${e.photo_url}','${hofFileName(i)}')">
+      <div style="margin-top:6px;"><a class="muted" style="font-size:.75rem;" href="${e.photo_url}"
+           download="${hofFileName(i)}">&#11015; download</a></div></div>`;
+  }).join('');
+  $('#page').innerHTML = `
+    <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div class="grow"><h2 style="margin:0; color:var(--navy);">\uD83C\uDFC6 Hall of Fame</h2>
+        <div class="muted">${es.length} highlighted photo${es.length===1?'':'s'} \u00b7 ranked #1 to #${d.rank_max||HOF_MAX_RANK}</div></div>
+      <button class="btn secondary" onclick="presentToggle()">\u26F6 Presentation mode</button>
+    </div>
+    ${es.length?`<div class="hof-grid">${cards}</div>`
+      :'<div class="card muted" style="text-align:center;">No photos have been highlighted yet \uD83C\uDFC6</div>'}
+    <button class="btn secondary" id="presentExit" onclick="presentToggle()">Exit presentation</button>`;
+  if(isPublic && !document.body.classList.contains('presenting')){
+    setTimeout(()=>{ if(!document.body.classList.contains('presenting')) presentToggle(); }, 400);
+  }
+}
+function presentToggle(){
+  document.body.classList.toggle('presenting');
+  if(document.body.classList.contains('presenting')) toast('Presentation mode \u2014 press Esc to exit');
+}
+document.addEventListener('keydown', ev=>{
+  if(ev.key==='Escape' && document.body.classList.contains('presenting')){
+    document.body.classList.remove('presenting');
+  }
+});
+/* ---------- admin: pick which photos to present and give each a rank ---------- */
+async function adminHall(){
+  let d;
+  try{ d = await api('/api/admin/hall-of-fame'); }
+  catch(e){ $('#page').innerHTML = `<div class="card">${esc(e.message)}</div>`; return; }
+  const items = d.items||[];
+  _hofRanks = {}; items.forEach(i=>{ if(i.rank!=null) _hofRanks[i.submission_id]=i.rank; });
+  const featured = items.filter(i=>i.rank!=null).sort((a,b)=>a.rank-b.rank);
+  const rest = items.filter(i=>i.rank==null);
+  const row = i=>{
+    return `<div class="card">
+      <div class="flex" style="gap:12px; align-items:flex-start;">
+        <img class="thumb" src="${i.thumbnail_url||i.photo_url}" style="cursor:zoom-in;"
+             title="Click to expand" onclick="zoom('${i.photo_url}','${hofFileName(i)}')">
+        <div class="grow"><h3 style="margin:0;">${i.rank!=null
+            ?`<span class="hof-rank sm">#${i.rank}</span> `:''}${esc(i.team)}</h3>
+          <div class="muted">CP${i.checkpoint_number||''} \u00b7 ${esc(i.checkpoint)} \u00b7 score
+            ${i.total_score!=null?i.total_score:'\u2014'} \u00b7 uploaded ${fmtTime(i.submitted_at)}</div>
+          ${hofSelect(i.submission_id, i.rank)}
+        </div>
+        <a href="#/admin/team/${i.team_id}" class="btn secondary" style="text-decoration:none;">Team page</a>
+      </div></div>`;
+  };
+  $('#page').innerHTML = `
+    <div class="card" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <div class="grow"><h2 style="margin:0; color:var(--navy);">\uD83C\uDFC6 Hall of Fame \u2014 pick your highlights</h2>
+        <div class="muted">Choose a rank from the dropdown (1\u2013${d.rank_max||HOF_MAX_RANK}) to feature an approved photo.
+          ${featured.length} featured \u00b7 ${rest.length} other approved photo${rest.length===1?'':'s'}.
+          Ranks may repeat \u2014 ties are broken by score.</div></div>
+      <a href="#/hall" class="btn secondary" style="text-decoration:none;">Open the showcase</a>
+      <button class="btn secondary" onclick="presentToggle()">\u26F6 Presentation mode</button>
+    </div>
+    <h3 style="color:var(--navy); margin:14px 0 8px;">Featured (${featured.length})</h3>
+    ${featured.map(row).join('')||'<div class="card muted" style="text-align:center;">Nothing featured yet \u2014 pick a rank below.</div>'}
+    <h3 style="color:var(--navy); margin:18px 0 8px;">Approved photos (${rest.length})</h3>
+    ${rest.map(row).join('')||'<div class="card muted" style="text-align:center;">No other approved photos yet.</div>'}`;
+}
+
+async function adminDashboard(){
+  let teams=[], subs=[], rcStatus='not_started';
+  try{ rcStatus=(await api('/api/admin/race/status')).status||'not_started'; }catch(_){}
+  const rcLive = rcStatus!=='live';
+  try{ teams=(await api('/api/admin/teams')).teams||[]; }catch(_){}
+  try{ subs=(await api('/api/admin/submissions?status=pending')).submissions||[]; }catch(_){}
+  const started=teams.filter(t=>t.started_at).length;
+  const finished=teams.filter(t=>t.status==='finished').length;
+  $('#page').innerHTML=`<div class="grid2">
+    <div class="stat"><div class="n">${started}</div><div class="l">Teams Started</div></div>
+    <div class="stat"><div class="n">${finished}</div><div class="l">Finished</div></div>
+    <div class="stat"><div class="n" style="color:var(--orange)">${subs.length}</div><div class="l">Pending Approvals</div></div>
+    <div class="stat"><div class="n">${teams.length}</div><div class="l">Total Teams</div></div></div>
+    <div class="card"><h3>Race Control <span class="rc-now" id="rcnow">Current: ${esc(rcStatus).replace('_',' ')}</span></h3>
+    <div class="rc-hint ${rcStatus==='live'?'done':''}">${rcStatus==='live'
+        ? 'Race is live — teams can tap START RACE once you release them.'
+        : 'Teams cannot start until the race is <b>live</b>. Click the blinking <b style="color:var(--orange)">live</b> button to start the race:'} ${rcStatus==='live'?'':'<span class="rc-arrow">👉</span>'}</div>
+    <div class="tabs" id="rcstatus">${['not_started','live','paused','completed'].map(s=>`<span class="tab${s===rcStatus?' on':''}${s==='live'?' tab-live':''}${(s==='live'&&rcLive)?' blink tab-next':''}" data-s="${s}" title="${s==='live'&&rcLive?'Click here to make the race live so teams can start':'Set race status to '+s}" onclick="setStatus('${s}')">${s.replace('_',' ')}${(s==='live'&&rcLive)?' ▶ start here':''}</span>`).join('')}</div>
+    </div>
+    <div class="card"><h3>Race Start (per team)</h3>
+      ${teams.map(t=>`<div class="checkpoint"><div class="grow"><b>${esc(t.name)}</b>
+        <div class="muted">Route: ${esc(t.route||'—')} · Order ${t.release_order} · ${t.status}${t.started_at?' · started '+fmtTime(t.started_at):''} · elapsed ${elapsedSpan(t)}</div></div>
+        ${t.started_at?`<span class="status-pill ${t.status==='racing'?'pill-available':'pill-pending'}">${esc(t.status)}</span>`:`<button class="tab" onclick="forceStartAdmin(${t.id})">Release</button>`}
+        </div>`).join('')||'<div class="muted">No teams.</div>'}
+    </div>
+    <div class="card"><h3>⏱ Elapsed Time by Team <span class="muted" style="font-weight:400; font-size:.8rem;">(current time − team start time)</span></h3>
+      <table class="leader"><tr><th>Team</th><th>Started</th><th>Elapsed</th><th>Status</th></tr>
+      ${teams.map(t=>`<tr style="cursor:pointer;" onclick="location.hash='#/admin/team/${t.id}'">
+        <td><b>${esc(t.name)}</b></td><td>${t.started_at?fmtTime(t.started_at):'—'}</td>
+        <td><b>${elapsedSpan(t)}</b></td><td>${esc(t.status)}</td></tr>`).join('')
+        ||'<tr><td colspan="4" class="muted">No teams.</td></tr>'}
+      </table>
+      <div class="muted" style="font-size:.8rem; margin-top:6px;">Click a team to open its photos and scores.</div>
+    </div>`;
+  startElapsedTicker();
+}
+async function setStatus(s){
+  try{ const d=await api('/api/admin/race/status',{method:'POST',body:JSON.stringify({status:s})});
+    toast('Race status → '+s); await render(); }catch(e){ toast(e.message); } }
+async function forceStartAdmin(tid){
+  if(!confirm('Start this team\'s race timer now?')) return;
+  try{ await api(`/api/admin/teams/${tid}/start`,{method:'POST'}); toast('Team released & started'); await render(); }catch(e){ toast(e.message); } }
+async function adminApprove(){
+  let teams, subs;
+  try{ teams=(await api('/api/admin/teams')).teams||[]; }catch(_){ teams=[]; }
+  const curTeam = ($('#fteam')||{}).value || '';
+  let q=''; if(curTeam) q='?team_id='+encodeURIComponent(curTeam);
+  try{ subs=(await api('/api/admin/submissions'+q)).submissions||[]; }
+  catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  _hofRanks = await loadHofRanks();
+  const pending=(subs||[]).filter(s=>s.status==='pending').length;
+  const teamOpts=teams.map(t=>`<option value="${t.id}" ${String(t.id)===String(curTeam)?'selected':''}>${esc(t.name)}</option>`).join('')||'';
+  const filterSelect=`<div class="card" style="padding:10px 12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <span style="font-weight:600;">Filter by Team:</span>
+      <select id="fteam" onchange="adminApprove()" style="padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px;">
+        <option value="">All teams</option>${teamOpts}
+      </select>
+      <span class="muted" style="font-size:.85rem;">${pending} pending — ${(subs||[]).length} shown</span></div>`;
+  $('#page').innerHTML=`<h3 style="color:var(--navy); margin:0 0 10px;">Approvals — Team ${curTeam?(''+curTeam):'All'}</h3>${filterSelect}
+    ${(subs||[]).map(s=>`<div class="card" id="s${s.id}">
+      <div class="flex"><img class="thumb" src="${s.thumbnail_url}" onclick="zoom('${s.photo_url}')">
+        <div class="grow"><h3>${esc(s.team)}</h3>
+          <div class="muted">CP${s.checkpoint_number||''} · ${esc(s.checkpoint)} · attempt ${s.attempt_number}</div>
+          <div class="muted">Submitted ${fmtTime(s.submitted_at)}${s.reviewed_at?' · Reviewed '+fmtTime(s.reviewed_at):''}</div>
+          <div style="margin-top:4px;"><span class="status-pill ${s.status==='completed'?'pill-completed':(s.status==='pending'?'pill-pending':'pill-rejected')}">${s.status==='completed'?'Approved':(s.status==='pending'?'Pending':'Rejected')}</span></div></div></div>
+      <div class="flex" style="margin-top:6px; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span style="color:var(--muted)">Score: <b>${s.total_score!=null?s.total_score:'—'}</b></span></div>
+      ${s.status==='completed'?hofSelect(s.id, (_hofRanks[s.id]!=null?_hofRanks[s.id]:null)):''}
+      ${s.status==='pending'
+        ? `<div><label class="muted" style="font-size:.8rem;">Points awarded (Admin allocates)</label>
+            <input id="pts${s.id}" type="number" min="0" max="20" value="0" placeholder="Points" style="width:80px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;">
+            <textarea id="cmt${s.id}" placeholder="Remarks / rejection reason"></textarea>
+            <div class="row2"><button class="btn secondary" onclick="rejectSub(${s.id})">Reject</button>
+            <button class="btn" onclick="approveSub(${s.id})">Approve</button></div></div>`
+        : `<div class="muted" style="margin-top:4px; font-size:.85rem;">${s.admin_comment?('Reason: '+esc(s.admin_comment)):'— no reason recorded —'}</div>`}
+    </div>`).join('')||'<div class="card muted" style="text-align:center;">No submissions for this filter 🎉</div>'}`;
+}
+async function approveSub(id){
+  const points=+($('#pts'+id).value||0), comment=$('#cmt'+id).value;
+  try{ await api(`/api/admin/submissions/${id}/approve`,{method:'POST',body:JSON.stringify({points,comment})});
+    toast('Approved ✅'); await adminApprove(); }catch(e){ toast(e.message); } }
+async function rejectSub(id){
+  const comment=$('#cmt'+id).value;
+  if(!comment){ toast('Please enter a rejection reason'); return; }
+  try{ await api(`/api/admin/submissions/${id}/reject`,{method:'POST',body:JSON.stringify({comment})});
+    toast('Rejected'); await adminApprove(); }catch(e){ toast(e.message); } }
+async function adminTeams(){
+  let teams; try{ teams=(await api('/api/admin/teams')).teams||[]; }
+  catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  const started=teams.filter(t=>t.started_at).length;
+  $('#page').innerHTML=`<div class="card"><h3>Teams</h3>
+    <div class="muted" style="font-size:.85rem; margin-bottom:8px;">${teams.length} teams · ${started} started. Click a team to open its uploaded photos (expand a photo, download it, adjust its score or comment).</div>
+    ${teams.map(t=>`<div class="checkpoint" style="cursor:pointer;" onclick="location.hash='#/admin/team/${t.id}'">
+      <div class="grow"><b>${esc(t.name)}</b>
+      <div class="muted">Route ${esc(t.route||'—')} · Order ${t.release_order} · ${t.status}
+      ${t.started_at?' · started '+fmtTime(t.started_at):''}${t.completed_at?' · finished '+fmtTime(t.completed_at):''}</div></div>
+      <span class="tab" style="cursor:pointer;">View photos &#8250;</span>
+      ${t.completed_at?`<span class="status-pill pill-completed">Done</span>`:(t.started_at?`<span class="status-pill pill-available">Racing</span>`:`<span class="status-pill pill-locked">Not started</span>`)}
+      </div>`).join('')||'<div class="muted">No teams.</div>'}</div>`;
+}
+async function adminLeader(){
+  let d; try{ d=await api('/api/leaderboard'); }catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  const rows=(d.leaderboard||[]).map(t=>`<tr style="cursor:pointer;" onclick="location.hash='#/admin/team/${t.id}'">
+    <td>${t.rank||''}</td><td><b>${esc(t.name)}</b></td>
+    <td><b>${t.score||0}</b></td><td>${t.completed||0}</td>
+    <td><b>${elapsedSpan(t)}</b>${t.running?'<span class="muted" style="font-size:.75rem;"> racing</span>':''}</td>
+    <td><button class="tab" onclick="event.stopPropagation();adjustModal(${t.id},'${esc(t.name)}')">±</button></td></tr>`).join('');
+  $('#page').innerHTML=`<div class="card"><h3>Leaderboard &amp; Score Adjust</h3>
+    <table class="leader"><tr><th>#</th><th>Team</th><th>Score</th><th>Done</th><th>Elapsed</th><th></th></tr>
+    ${rows}</table>
+    <div class="muted" style="font-size:.8rem; margin-top:8px;">Elapsed = current time − team start time (frozen once finished). Click a team to open its uploaded photos, adjust each photo's score and add comments.</div>
+    <a href="/api/admin/results.csv" class="btn secondary" style="text-decoration:none; text-align:center; margin-top:12px;">⬇️ Export CSV</a>
+  </div>`;
+  startElapsedTicker();
+}
+function adjustModal(tid,tname){
+  $('#app').insertAdjacentHTML('beforeend',`<div class="modal show" id="adjm">
+    <div class="modal-card"><h3>Adjust Score — ${tname}</h3>
+      <label class="muted">Points (+ / −)</label>
+      <input id="apts" type="number" value="0">
+      <label class="muted">Reason (required)</label>
+      <textarea id="area"></textarea>
+      <div class="row2"><button class="btn secondary" onclick="$('#adjm').remove()">Cancel</button>
+      <button class="btn" onclick="applyAdjust(${tid})">Apply</button></div></div></div>`);
+}
+async function applyAdjust(tid){
+  const pts=+($('#apts').value||0), reason=$('#area').value.trim();
+  if(!reason){ toast('Reason required'); return; }
+  try{ await api(`/api/admin/teams/${tid}/adjust`,{method:'POST',body:JSON.stringify({points:pts,reason})});
+    toast('Adjusted'); $('#adjm').remove(); render(); }catch(e){ toast(e.message); } }
+/* ------------- admin: one team's photos, scores and comments (opened from Leaderboard) ------------- */
+async function teamDetail(teamId){
+  let d;
+  try{ d=await api('/api/admin/teams/'+teamId+'/detail'); }
+  catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  const t=d.team||{};
+  await loadHofRanks();
+  const subs=(d.submissions||[]);
+  const byCp={};
+  subs.forEach(s=>{ byCp[s.checkpoint_id]=s; });          // newest row per checkpoint wins
+  const elapsed = t.completed_at
+    ? `<span data-elapsed data-final="${t.elapsed_seconds!=null?t.elapsed_seconds:0}">${fmtDur(t.elapsed_seconds)}</span>`
+    : (t.started_at ? `<span data-elapsed="${t.started_at}">${fmtDur(t.elapsed_seconds)}</span>` : '<span class="muted">not started</span>');
+
+  const cps=(d.checkpoints||[]).map(c=>`<div class="checkpoint"><span class="cp-num cur">${c.number}</span>
+    <div class="grow"><b>${esc(c.title)}</b>
+      <div class="muted">${esc(c.location||'')}${c.is_final?' · FINAL':''} ${c.completed_at?('· done '+fmtTime(c.completed_at)):''}</div></div>
+    ${pill(c.progress)}</div>`).join('')||'<div class="muted">No route assigned.</div>';
+
+  const photos=(d.checkpoints||[]).map(c=>{
+    const s=byCp[c.checkpoint_id];
+    if(!s) return `<div class="card"><h3>CP${c.number} · ${esc(c.title)}</h3>
+      <div class="muted">No photo uploaded yet.</div></div>`;
+    const st=s.status==='completed'?'Approved':(s.status==='pending'?'Pending review':'Rejected');
+    const photoName=((t.name||('team'+teamId)).replace(/[^A-Za-z0-9]+/g,'')||'team')
+      +'_CP'+s.checkpoint_number+'_try'+s.attempt_number+'.jpg';
+    const cls=s.status==='completed'?'pill-completed':(s.status==='pending'?'pill-pending':'pill-rejected');
+    return `<div class="card" id="sub${s.id}">
+      <div class="flex" style="gap:12px; align-items:flex-start;">
+        <div style="text-align:center;">
+          <img class="thumb" src="${s.thumbnail_url}" style="cursor:zoom-in;" title="Click to expand"
+               onclick="zoom('${s.photo_url}','${photoName}')">
+          <div><a href="${s.photo_url}" download="${photoName}" class="muted" style="font-size:.75rem;">&#11015; download</a></div>
+        </div>
+        <div class="grow"><h3 style="margin:0;">CP${s.checkpoint_number} · ${esc(s.checkpoint)}</h3>
+          <div class="muted">Uploaded ${fmtTime(s.submitted_at)} · attempt ${s.attempt_number}${s.is_final?' · FINAL MISSION':''}</div>
+          <div style="margin-top:6px;"><span class="status-pill ${cls}">${st}</span>
+            <span class="muted" style="margin-left:8px;">Score: <b>${s.total_score!=null?s.total_score:'—'}</b></span>
+            ${s.reviewed_at?`<span class="muted" style="margin-left:8px;">reviewed ${fmtTime(s.reviewed_at)}</span>`:''}
+            ${s.status==='completed'?hofSelect(s.id, (_hofRanks[s.id]!=null?_hofRanks[s.id]:null)):''}</div></div>
+      </div>
+      <div class="flex" style="margin-top:10px; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+        <div><label class="muted" style="font-size:.8rem; display:block;">Score for this photo</label>
+          <input id="pts${s.id}" type="number" min="0" max="200" value="${s.total_score!=null?s.total_score:0}"
+                 style="width:90px; padding:6px; border:1px solid #cbd5e1; border-radius:6px;"></div>
+        <div class="grow"><label class="muted" style="font-size:.8rem; display:block;">Comment (visible to the team)</label>
+          <textarea id="cmt${s.id}" placeholder="Comment / reason">${esc(s.admin_comment||'')}</textarea></div>
+        <div style="display:flex; gap:8px; padding-top:20px;">
+          <button class="btn" onclick="scoreSub(${s.id},${teamId})">Save score</button>
+          ${s.status==='rejected'?'':`<button class="btn secondary" onclick="scoreSub(${s.id},${teamId},true)">Reject</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const adjRows=(d.adjustments||[]).map(a=>`<div class="audit-row"><span class="t">${esc(a.type)}</span> ·
+    <b>${a.points>0?'+':''}${a.points}</b> · <span class="muted">${esc(a.reason)} · ${fmtTime(a.created_at)}</span></div>`).join('');
+
+  $('#page').innerHTML=`
+    <div class="card"><div class="flex" style="align-items:center; gap:12px; flex-wrap:wrap;">
+      <div class="grow"><h2 style="margin:0;">${esc(t.name)}</h2>
+        <div class="muted">Route ${esc(t.route||'—')} · ${esc(t.status)}${t.started_at?' · started '+fmtTime(t.started_at):''}</div>
+        <div style="margin-top:10px; font-size:1.05rem;">Total elapsed: <b>${elapsed}</b>
+          <span class="muted" style="margin-left:12px;">Team score: <b>${d.score||0}</b></span></div></div>
+      <a href="javascript:void(0)" class="btn secondary" style="text-decoration:none;" onclick="if(history.length>1){history.back()}else{location.hash='#/admin/teams'}">← Back</a><a href="#/admin/teams" class="btn secondary" style="text-decoration:none; margin-left:8px;">All teams</a><a href="#/admin/leader" class="btn secondary" style="text-decoration:none; margin-left:8px;">Leaderboard</a></div></div>
+    <div class="card"><h3>Route progress</h3>${cps}</div>
+    <h3 style="color:#fff; margin:14px 0 8px;">Uploaded photos &amp; scores (${subs.length})</h3>
+    ${photos||'<div class="card muted" style="text-align:center;">No photos uploaded yet 🎉</div>'}
+    ${adjRows?`<div class="card"><h3>Score breakdown</h3>${adjRows}</div>`:''}`;
+  startElapsedTicker();
+}
+async function scoreSub(id,teamId,reject){
+  const points=+($('#pts'+id).value||0), comment=$('#cmt'+id).value;
+  if(reject && !comment.trim()){ toast('Please enter a reason for rejecting'); return; }
+  const body={points:points, comment:comment};
+  if(reject) body.reject=true;
+  try{
+    const r=await api('/api/admin/submissions/'+id+'/score',{method:'POST',body:JSON.stringify(body)});
+    toast(reject?'Rejected':('Saved ✅ · team total '+r.team_score));
+    await teamDetail(teamId);
+  }catch(e){ toast(e.message); }
+}
+/* ------------- live elapsed-time ticker (dashboard + leaderboard + team page) ------------- */
+function elapsedSpan(t){
+  if(t.completed_at) return `<span data-elapsed data-final="${t.elapsed_seconds!=null?t.elapsed_seconds:0}">${fmtDur(t.elapsed_seconds)}</span>`;
+  if(t.started_at)   return `<span data-elapsed="${t.started_at}">${fmtDur(t.elapsed_seconds)}</span>`;
+  return '<span class="muted">—</span>';
+}
+function startElapsedTicker(){
+  clearInterval(window._elapsedInt);
+  const paint=()=>document.querySelectorAll('[data-elapsed]').forEach(el=>{
+    if(el.dataset.final!==undefined && el.dataset.final!=='') el.textContent=fmtDur(+el.dataset.final);
+    else if(el.dataset.elapsed) el.textContent=fmtDur(liveSec(el.dataset.elapsed));
+  });
+  paint();
+  window._elapsedInt=setInterval(paint,1000);
+}
+
+async function adminAudit(){
+  let d; try{ d=await api('/api/admin/audit'); }catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  const rows=(d.audit||[]).map(a=>`<div class="audit-row">
+    <span class="t">${esc(a.action)}</span> · ${esc(a.entity_type||'')} #${esc(a.entity_id||'')} ·
+    <span class="muted">${fmtTime(a.created_at)} · ip ${esc(a.ip||'')}</span></div>`).join('');
+  $('#page').innerHTML=`<div class="card"><h3>Activity Log</h3>${rows||'<div class="muted">No activity.</div>'}</div>`;
+}
+async function adminCheckpoints(){
+  let d; try{ d=await api('/api/admin/checkpoints'); }catch(e){ $('#page').innerHTML=`<div class="card">${esc(e.message)}</div>`; return; }
+  const rows=(d.checkpoints||[]).map(c=>`<div class="checkpoint"><span class="cp-num cur">${c.number}</span>
+    <div class="grow"><b>${esc(c.title)}</b><div class="muted">${esc(c.location)} · ${c.default_score} pts${c.is_final?' · FINAL':''}</div>
+    ${(c.images||[]).map(i=>`<img src="${i.url}" style="height:50px; border-radius:6px; margin-top:6px;">`).join('')}</div></div>`).join('');
+  $('#page').innerHTML=`<div class="card"><h3>Checkpoints (${(d.checkpoints||[]).length})</h3>${rows}</div>`;
+}
+
+/* ===== LIVE AUTO-REFRESH ==================== */
+/* Admin pages watch for new team uploads: poll every second, redraw only on real change.
+   Safe by design - never redraws while you are typing a score/remark or have a photo open. */
+const LIVE_INTERVAL_MS = 1000;
+let _lfInt=null, _lfPaused=false, _lfBodies={}, _lfBase=false, _lfDirty=false;
+
+function liveRoutePath(){
+  const p=navPath();
+  if(p==='#/admin'||p==='#/admin/approve'||p==='#/admin/teams'||p==='#/admin/leader') return p;
+  if(p==='#/admin/hall'||p==='#/hall') return p;
+  if(/^#\/admin\/team\/\d+$/.test(p)) return p;
+  return null;
+}
+function liveEndpoints(p){
+  if(p==='#/admin') return ['/api/admin/race/status','/api/admin/teams','/api/admin/submissions?status=pending'];
+  if(p==='#/admin/approve'){
+    const t=($('#fteam')||{}).value||'';
+    return ['/api/admin/submissions'+(t?('?team_id='+encodeURIComponent(t)):'')];
+  }
+  if(p==='#/admin/teams')  return ['/api/admin/teams'];
+  if(p==='#/admin/leader') return ['/api/leaderboard'];
+  if(p==='#/admin/hall') return ['/api/admin/hall-of-fame'];
+  if(p==='#/hall') return ['/api/hall-of-fame'];
+  const m=p.match(/^#\/admin\/team\/(\d+)$/);
+  if(m) return ['/api/admin/teams/'+m[1]+'/detail','/api/admin/hall-of-fame'];
+  return [];
+}
+/* ignore clock-derived numbers, else the poll would "change" every single tick */
+function liveScrub(o){
+  if(Array.isArray(o)) return o.map(liveScrub);
+  if(o && typeof o==='object'){
+    const out={};
+    for(const k of Object.keys(o)){
+      if(/elapsed|_seconds$|server_time|age_seconds/.test(k)) continue;
+      out[k]=liveScrub(o[k]);
+    }
+    return out;
+  }
+  return o;
+}
+function liveChip(){
+  const p=liveRoutePath();
+  let c=$('#lfchip');
+  if(!p || !state.me || state.me.role!=='admin'){ if(c) c.remove(); return; }
+  if(!c){ c=document.createElement('div'); c.id='lfchip'; c.className='lfchip'; document.body.appendChild(c); }
+  c.innerHTML = _lfPaused
+    ? '<span class="lf-dot off"></span>Auto-refresh paused &middot; <a href="#" onclick="liveToggle();return false;">resume</a>'
+    : '<span class="lf-dot"></span>LIVE &middot; checking for new uploads every 1s'
+      + (_lfDirty?' &middot; <a href="#" onclick="liveRefreshNow();return false;">&#128276; new upload ready &mdash; click to show</a>':'');
+}
+function liveToggle(){ _lfPaused=!_lfPaused; liveChip(); if(!_lfPaused) liveTick(); }
+async function liveRefreshNow(){ const y=window.scrollY||0; _lfDirty=false; await render(); window.scrollTo(0,y); liveChip(); }
+function liveBusy(){
+  const lb=$('#lightbox'); if(lb && lb.classList.contains('show')) return true;   // a photo is open
+  const a=document.activeElement;
+  if(a && (a.tagName==='TEXTAREA'||a.tagName==='INPUT'||a.tagName==='SELECT')) return true;  // mid-typing
+  return false;
+}
+async function liveTick(){
+  if(_lfPaused) return;
+  const p=liveRoutePath(); if(!p) return;
+  const urls=liveEndpoints(p); if(!urls.length) return;
+  let changed=false; const fresh={};
+  for(const u of urls){
+    let r;
+    try{ r=await fetch(u+(u.indexOf('?')>=0?'&':'?')+'_lf='+Date.now(),{credentials:'same-origin',cache:'no-store'}); }
+    catch(e){ return; }
+    if(r.status===401){ renderLogin(); return; }
+    if(!r.ok) return;
+    let j=null; try{ j=await r.json(); }catch(e){ return; }
+    const sig=JSON.stringify(liveScrub(j));
+    fresh[u]=sig;
+    if(_lfBase && _lfBodies[u]!==undefined && _lfBodies[u]!==sig) changed=true;
+  }
+  _lfBodies=fresh; _lfBase=true;
+  if(!changed && !_lfDirty) return;
+  if(liveBusy()){ _lfDirty=true; liveChip(); return; }   // someone is typing / viewing a photo
+  _lfDirty=false;
+  const y=window.scrollY||0;
+  await render();
+  window.scrollTo(0,y);
+  liveChip();
+}
+function setupLiveRefresh(){
+  clearInterval(_lfInt);
+  const p=liveRoutePath();
+  const adminOnly = (p!=='#/hall');
+  if(!p || !state.me || (adminOnly && state.me.role!=='admin')){ _lfBodies={}; _lfBase=false; _lfDirty=false; liveChip(); return; }
+  liveChip();
+  _lfInt=setInterval(liveTick, LIVE_INTERVAL_MS);
+  setTimeout(liveTick, 250);   // baseline straight away
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) liveTick(); });
+}
+/* every render (route change, login, after an approve) re-arms the watcher */
+const _renderRaw = render;
+render = async function(){ await _renderRaw(); setupLiveRefresh(); };
+
+/* ============================== BOOT ============================== */
+window.addEventListener('hashchange', render);
+window.addEventListener('DOMContentLoaded', render);
+</script>
+</body>
+</html>

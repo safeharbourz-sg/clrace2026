@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Runtime data — never commit
+*.db
+*.sqlite
+*.sqlite3
+backend/app/data/*.db
+backend/app/data/*.db-*
+backend/app/uploads/proof/
+logs/
+*.log
+
+# Backup / temp / editor
+*.bak
+*.pre-*
+*.orig
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Secrets & local deployment config
+.env
+.env.*
+!.env.example
+*credential*
+*tok*.txt
+_vt_*
+_vf_*
+_lf_adm_*
+cloudflared/
+config.yml
