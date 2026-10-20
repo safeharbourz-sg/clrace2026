@@ -312,7 +312,12 @@ async function doLogin(e){
     const pe=$('#p'); if(pe) pe.focus();
   }
 }
-function renderLogin(){ state.me=null; loginView(); }
+function renderLogin(){
+  state.me=null;
+  stopLiveRefresh();            // kill the 1s upload-poller: it used to re-render this form every second
+  if($('#u')) return;           // form already on screen — keep whatever the user has typed
+  loginView();
+}
 
 /* ============================== TEAM VIEWS ============================== */
 let timerInt=null, pollInt=null;
@@ -987,7 +992,11 @@ async function liveTick(){
     let r;
     try{ r=await fetch(u+(u.indexOf('?')>=0?'&':'?')+'_lf='+Date.now(),{credentials:'same-origin',cache:'no-store'}); }
     catch(e){ return; }
-    if(r.status===401){ renderLogin(); return; }
+    if(r.status===401){
+      state.me=null;
+      if(location.hash && location.hash!=='#/login') history.replaceState(null,'','#/login');
+      renderLogin(); return;
+    }
     if(!r.ok) return;
     let j=null; try{ j=await r.json(); }catch(e){ return; }
     const sig=JSON.stringify(liveScrub(j));
@@ -1003,11 +1012,17 @@ async function liveTick(){
   window.scrollTo(0,y);
   liveChip();
 }
+/* stop polling and drop the LIVE chip — used whenever we fall back to the login screen */
+function stopLiveRefresh(){
+  clearInterval(_lfInt); _lfInt=null;
+  _lfBodies={}; _lfBase=false; _lfDirty=false;
+  const c=$('#lfchip'); if(c) c.remove();
+}
 function setupLiveRefresh(){
   clearInterval(_lfInt);
   const p=liveRoutePath();
   const adminOnly = (p!=='#/hall');
-  if(!p || !state.me || (adminOnly && state.me.role!=='admin')){ _lfBodies={}; _lfBase=false; _lfDirty=false; liveChip(); return; }
+  if(!p || p==='#/login' || !state.me || (adminOnly && state.me.role!=='admin')){ _lfBodies={}; _lfBase=false; _lfDirty=false; liveChip(); return; }
   liveChip();
   _lfInt=setInterval(liveTick, LIVE_INTERVAL_MS);
   setTimeout(liveTick, 250);   // baseline straight away
