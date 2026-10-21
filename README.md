@@ -88,7 +88,28 @@ The dry instance conventionally runs on **8013**, the wet instance on **8016**; 
 | `RACE_ADMIN_PASSWORD` | *generated* | Password given to the seeded admin accounts (`max`, `lyn`, `karina`, `shijie`). If unset, a random password is generated and printed once during seeding. |
 | `RACE_TEAM_PASSWORD` | *generated* | Password given to the seeded team accounts (`team1`…`team12`). If unset, generated and printed once during seeding. |
 
-Passwords are stored hashed; there is no password-change screen — to rotate them, re-seed a fresh database or update the `users` table.
+Passwords are stored hashed and are only used when seeding a fresh database. **Since the race finished, password sign-in is disabled on both instances** — see *Sign-in* below.
+
+### Sign-in (post-race lockdown)
+
+`POST /api/login` now returns **403** for every account, including the seeded admins and team leaders. Their rows stay in `users` (with `active = 0` for everyone but the owner) purely for history; the game data, photos and results are untouched.
+
+The only way in is a one-time code emailed to the single mailbox configured server-side:
+
+| Step | Endpoint | Behaviour |
+|---|---|---|
+| 1 | `POST /api/auth/request-code` `{email}` | Always `200` with the same generic message. The response body, timing and page text never vary, so the form cannot be used to discover whether an address is authorised. Only the allowlisted mailbox actually receives a code. |
+| 2 | `POST /api/auth/verify-code` `{email, code}` | Sets the session cookie on a valid code, otherwise `401 Invalid or expired code`. |
+
+Codes are six digits, stored as a salted SHA-256 hash (`login_codes` table), valid for **10 minutes**, **single use**, invalidated after **5 wrong attempts**, with a 60-second resend cooldown and 8 requests per IP per hour. Delivery uses the local Gmail SMTP configuration in `~/projects/gmail-housekeeper/backend/config.toml` (override the path with `RACE_SMTP_CONFIG`); no credential is stored in this repository.
+
+The allowlisted address lives **only** in the `settings` row `login_email`. It is never rendered in the UI, placeholder text, error messages, page titles, logs shown to users, or this repository. To change it:
+
+```sql
+UPDATE settings SET value = '<address>' WHERE key = 'login_email';
+```
+
+To retire the lockdown and restore password sign-in, delete that setting and set `users.active = 1` again for the accounts you want back.
 
 ### Tests
 

@@ -14,6 +14,7 @@ import base64
 import csv
 import io
 import json
+import logging
 import os
 import re
 import secrets
@@ -31,6 +32,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
+from . import login_otp
 from .auth import create_db_session, hash_password, log_audit, verify_password
 from .database import get_session, init_db
 from .models import (AuditLog, Checkpoint, CheckpointImage, Event, EventMode, Route,
@@ -46,8 +48,11 @@ PROOF_DIR.mkdir(parents=True, exist_ok=True)
 STATIC_DIR = BASE_DIR / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 
+logger = logging.getLogger("clrace")
+
 COOKIE = "clrace_session"
 SESSION_TTL_HOURS = 12
+LOGIN_EMAIL_SETTING = "login_email"
 MAX_PHOTO_BYTES = 15 * 1024 * 1024
 ALLOWED_TYPES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic"}
 
@@ -169,16 +174,45 @@ def _team_route(db: Session, team: Team) -> list[RouteCheckpoint]:
 # ------------------------------------------------------------------ auth
 @app.post("/api/login")
 def login(payload: dict, request: Request, db: Session = Depends(get_session)):
-    u = db.exec(select(User).where(User.username == payload.get("username", "").strip())).first()
-    if not u or not verify_password(payload.get("password", ""), u.password_hash):
-        raise HTTPException(401, "Invalid credentials")
-    if not u.active:
-        raise HTTPException(403, "Account disabled")
+    """Password sign-in is retired. Only the emailed one-time code works."""
+    raise HTTPException(403, "Password sign-in is disabled. Use the email sign-in code.")
+
+
+@app.post("/api/auth/request-code")
+def request_login_code(payload: dict, request: Request, db: Session = Depends(get_session)):
+    """Email a 6-digit code — only ever to the server-side allowlisted address.
+
+    The response is identical whether or not the address is authorised, so the
+    page can never be used to discover the allowlisted mailbox.
+    """
+    email = (payload.get("email") or "").strip().lower()
+    if email and login_otp.allow_request(_client_ip(request)):
+        allowed = _setting(db, LOGIN_EMAIL_SETTING).strip().lower()
+        if allowed and secrets.compare_digest(email, allowed):
+            try:
+                login_otp.issue_code(db, email, _client_ip(request))
+            except Exception as exc:      # fail closed, stay generic
+                logger.warning("login code delivery failed: %s", type(exc).__name__)
+    return {"ok": True, "message": "If that address is authorised, a code is on its way."}
+
+
+@app.post("/api/auth/verify-code")
+def verify_login_code(payload: dict, request: Request, db: Session = Depends(get_session)):
+    email = (payload.get("email") or "").strip().lower()
+    code = re.sub(r"\D", "", str(payload.get("code") or ""))
+    if len(code) != 6 or not login_otp.consume_code(db, email, code):
+        raise HTTPException(401, "Invalid or expired code")
+    u = db.exec(select(User).where(User.role == "admin", User.active == True)  # noqa: E712
+                .order_by(User.id)).first()
+    if not u:
+        raise HTTPException(403, "No account is authorised to sign in")
     s = create_db_session(db, u.id, _client_ip(request),
                           request.headers.get("user-agent"), SESSION_TTL_HOURS)
-    log_audit(db, actor_id=u.id, action="login", entity_type="user", entity_id=u.id, ip=_client_ip(request))
+    log_audit(db, actor_id=u.id, action="login_otp", entity_type="user", entity_id=u.id,
+              ip=_client_ip(request))
     resp = JSONResponse({"ok": True, "user": _user_pub(u)})
-    resp.set_cookie(COOKIE, s.token, httponly=True, samesite="lax", max_age=SESSION_TTL_HOURS * 3600, secure=False)
+    resp.set_cookie(COOKIE, s.token, httponly=True, samesite="lax",
+                    max_age=SESSION_TTL_HOURS * 3600, secure=False)
     return resp
 
 

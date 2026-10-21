@@ -38,7 +38,7 @@ sqlite3 ~/projects/cli-race-2026/backend/app/data/clirace2026.db \
  "select (select count(*) from sessions), (select count(*) from submissions), (select status from events);"
 #    expect: 0|0|not_started
 
-# 4. Log in as admin on each instance in a browser and confirm the Teams page shows 12 ready teams.
+# 4. Sign in as organiser on each instance (email code) and confirm the Teams page shows 12 ready teams.
 
 # 5. Full end-to-end drill on the DRY instance (dry only — leaves wet data untouched):
 python3 ~/.hermes/cache/scratch/readiness_e2e.py https://clrace2026.clreport.com ~/projects/cl-race-2026

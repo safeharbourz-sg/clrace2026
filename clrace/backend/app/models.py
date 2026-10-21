@@ -206,3 +206,18 @@ class HallOfFame(SQLModel, table=True):
     created_by: Optional[int] = Field(default=None, foreign_key="users.id")
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
+
+
+# ------------------------------------------------------- email sign-in codes
+class LoginCode(SQLModel, table=True):
+    """One-time email sign-in codes (hashed; see app/login_otp.py)."""
+    __tablename__ = "login_codes"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(index=True)
+    salt: str
+    code_hash: str
+    expires_at: datetime
+    attempts: int = 0
+    created_at: datetime = Field(default_factory=utcnow)
+    ip: Optional[str] = None

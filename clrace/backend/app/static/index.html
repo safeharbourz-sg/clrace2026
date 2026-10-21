@@ -287,35 +287,72 @@ function loginView(){
   $('#app').innerHTML = `<div class="login-wrap"><div class="login-card">
     <h1>CL Race 2026</h1><p>Agent DT: City Quest — CBD Amazing Race</p>
     <div class="prog prog-haze">☀️ Haze Free Programme</div>
-    <label>Username</label><input id="u" autocomplete="username" autocapitalize="none" onkeydown="if(event.key==='Enter')doLogin(event)">
-    <label>Password</label><input id="p" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin(event)">
-    <button class="btn" onclick="doLogin(event)">Sign In</button>
+    <div id="step-email">
+      <label>Email</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')requestCode(event)">
+      <button class="btn" id="btn-send" onclick="requestCode(event)">Email me a sign-in code</button>
+    </div>
+    <div id="step-code" style="display:none">
+      <div id="sent-msg" style="color:var(--muted); font-size:.86rem; margin:10px 0 0;"></div>
+      <label>6-digit code</label><input id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" onkeydown="if(event.key==='Enter')verifyCode(event)">
+      <button class="btn" id="btn-verify" onclick="verifyCode(event)">Verify &amp; Sign In</button>
+      <div class="switch"><a href="#" onclick="backToEmail(event)">Use a different email</a></div>
+    </div>
     <div class="err" id="lerr"></div>
-    <div class="switch">Running the <b>Haze / Wet Weather</b> programme instead?<br><a href="https://clirace2026.clreport.com">Switch to Haze / Wet Weather Programme →</a></div></div></div>`;
+    <div class="switch">Running the <b>Haze / Wet Weather</b> programme instead?<br><a href="https://clirace2026.clreport.com">Switch to Haze / Wet Weather Programme →</a></div>
+  </div></div>`;
 }
-async function doLogin(e){
+async function requestCode(e){
   e.preventDefault();
-  const btn = document.querySelector('.login-card .btn');
-  if(btn && btn.disabled) return;               // guard double-submit
-  const errEl = $('#lerr'); if(errEl) errEl.textContent='';
-  const u=$('#u').value.trim(), p=$('#p').value;
-  if(btn){ btn.disabled=true; btn.textContent='Signing in…'; }
+  const btn=$('#btn-send'); if(btn && btn.disabled) return;   // guard double-submit
+  const errEl=$('#lerr'); if(errEl) errEl.textContent='';
+  const email=$('#em').value.trim();
+  if(!email){ if(errEl) errEl.textContent='Enter your email address.'; return; }
+  if(btn){ btn.disabled=true; btn.textContent='Sending…'; }
   try{
-    const d = await api('/api/login',{method:'POST',body:JSON.stringify({username:u,password:p}),_no401:true});
-    state.me=d.user;
-    const target = d.user.role==='admin' ? '#/admin' : '#/mission';
-    if(location.hash !== target) location.hash = target;  // hashchange listener renders
-    await render();                                       // ALWAYS render: hash may already equal target
+    await api('/api/auth/request-code',{method:'POST',body:JSON.stringify({email}),_no401:true});
+    const ce=$('#step-code'); if(ce) ce.style.display='block';
+    const msg=$('#sent-msg');
+    if(msg) msg.textContent='If this address is authorised, a code is on its way. It expires in 10 minutes.';
+    if(btn){ btn.disabled=false; btn.textContent='Resend code'; }
+    const c=$('#code'); if(c) c.focus();
   }catch(err){
-    if(errEl) errEl.textContent=err.message;
-    if(btn){ btn.disabled=false; btn.textContent='Sign In'; }
-    const pe=$('#p'); if(pe) pe.focus();
+    if(errEl) errEl.textContent='Could not send a code just now. Please try again shortly.';
+    if(btn){ btn.disabled=false; btn.textContent='Email me a sign-in code'; }
   }
 }
+async function verifyCode(e){
+  e.preventDefault();
+  const btn=$('#btn-verify'); if(btn && btn.disabled) return;
+  const errEl=$('#lerr'); if(errEl) errEl.textContent='';
+  const email=$('#em').value.trim(), code=($('#code').value||'').replace(/\D/g,'');
+  if(code.length!==6){ if(errEl) errEl.textContent='Enter the 6-digit code from the email.'; return; }
+  if(btn){ btn.disabled=true; btn.textContent='Verifying…'; }
+  try{
+    const d = await api('/api/auth/verify-code',{method:'POST',body:JSON.stringify({email,code}),_no401:true});
+    state.me=d.user;
+    const target = d.user.role==='admin' ? '#/admin' : '#/mission';
+    if(location.hash !== target) location.hash = target;
+    await render();
+  }catch(err){
+    if(errEl) errEl.textContent='Invalid or expired code. Request a new one.';
+    if(btn){ btn.disabled=false; btn.textContent='Verify & Sign In'; }
+    const c=$('#code'); if(c){ c.value=''; c.focus(); }
+  }
+}
+function backToEmail(e){
+  e.preventDefault();
+  const ce=$('#step-code'); if(ce) ce.style.display='none';
+  const msg=$('#sent-msg'); if(msg) msg.textContent='';
+  const errEl=$('#lerr'); if(errEl) errEl.textContent='';
+  const btn=$('#btn-send'); if(btn){ btn.disabled=false; btn.textContent='Email me a sign-in code'; }
+  const c=$('#code'); if(c) c.value='';
+  const em=$('#em'); if(em) em.focus();
+}
+
 function renderLogin(){
   state.me=null;
   stopLiveRefresh();            // kill the 1s upload-poller: it used to re-render this form every second
-  if($('#u')) return;           // form already on screen — keep whatever the user has typed
+  if($('#em')||$('#code')) return;  // form already on screen — keep whatever the user has typed
   loginView();
 }
 

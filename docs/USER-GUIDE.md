@@ -32,17 +32,17 @@ Do this the day before, not on the morning.
 
 ### Admins
 
-Open the site on a laptop and log in with an admin account.
+Open the site on a laptop and sign in with the organiser account.
 
 ![Login screen](images/01-login.png)
 
-Type the username and password and press **Enter** — the form submits on Enter and guards against double-submits, so one press is enough. You land on the dashboard.
+**Sign-in is by email code — there is no password field.** Enter the organiser mailbox, press **Email me a sign-in code**, then type the six digits from the message. Press **Enter** in either field instead of clicking if you prefer; a double-submit guard means one press is enough. The code expires after 10 minutes, works once, and the form always says the same thing no matter which address is typed, so it never reveals who is allowed in. You land on the dashboard.
 
 ### Teams
 
-Team leaders open the same URL on their phones and log in with their own team account. The layout is mobile-first: mission card on top, timer on the right, navigation as **Mission / Hall of Fame / Menu**.
+Team leaders used to open the same URL on their phones and sign in with their own team account. **That access has been removed now the race is over** — team and staff logins are disabled, and only the organiser mailbox can obtain a code. The screenshots and the rest of this guide are kept as a record of how the game ran. The layout is mobile-first: mission card on top, timer on the right, navigation as **Mission / Hall of Fame / Menu**.
 
-> There is deliberately **no password-change screen** — accounts are handed out by the organiser, and passwords are set when the database is seeded (see the README, `RACE_ADMIN_PASSWORD` / `RACE_TEAM_PASSWORD`).
+> There is deliberately **no password-change screen** and no self-registration. Seeded passwords are only used when recreating a fresh database (see the README, `RACE_ADMIN_PASSWORD` / `RACE_TEAM_PASSWORD`); they cannot be used to sign in on the live instances.
 
 ---
 
