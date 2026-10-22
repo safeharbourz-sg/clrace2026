@@ -13,7 +13,7 @@ Instances: `clrace2026.clreport.com` (dry run, port 8013) · `clirace2026.clrepo
 | `com.clirace2026.backend` | same for the wet backend | `~/Library/LaunchAgents/` |
 | `com.familyhub.cloudflared` | the public tunnel process (`cloudflared tunnel run familyhub`), keeps both hostnames alive | `~/Library/LaunchAgents/` |
 | `com.clrace2026.snapshot` | **every 5 minutes**: consistent SQLite snapshot of both DBs → `~/.hermes/backups/race-live/<ts>/`, last 100 kept, plus a copy to Google Drive → `My Drive/CLrace2026-backups/` (last 20) | `~/.hermes/scripts/race_snapshot.py` |
-| `com.clrace2026.watchdog` | **every 2 minutes**: probes 8013, 8016, both public hosts; auto-restarts the dead agent; alerts Telegram (primary) with a 10-min cooldown and a recovery message | `~/.hermes/scripts/race_watchdog.py` |
+| `com.clrace2026.watchdog` | **every 2 minutes**: probes 8013, 8016, both public hosts; auto-restarts the dead agent (backend or `familyhub.cloudflared`). **Alerts are muted** — since the game finished nothing is posted to Telegram or Discord; outcomes go to the log only. Re-enable by removing the early `return` in `notify()` | `~/.hermes/scripts/race_watchdog.py` |
 | Machine power | `pmset sleep 0`, `womp 1`, `powernap 1` — the Mac mini does not sleep | `pmset -g custom` |
 
 Logs: `~/.hermes/logs/race_snapshot.log`, `~/.hermes/logs/race_watchdog.log`.
